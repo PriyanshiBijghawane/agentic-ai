@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/immutability */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
-
 import * as React from 'react';
 import { motion } from 'motion/react';
 
@@ -278,22 +279,41 @@ function HoleBackground({
     });
   }, [initParticle]);
 
-  const tick = React.useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-    ctx.scale(stateRef.current.render.dpi, stateRef.current.render.dpi);
-    moveDiscs();
-    moveParticles();
-    drawDiscs(ctx);
-    drawLines(ctx);
-    drawParticles(ctx);
-    ctx.restore();
-    animationFrameIdRef.current = requestAnimationFrame(tick);
-  }, [moveDiscs, moveParticles, drawDiscs, drawLines, drawParticles]);
+  
+   const tick = React.useCallback(() => {
+  const canvas = canvasRef.current;
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+
+  ctx.scale(
+    stateRef.current.render.dpi,
+    stateRef.current.render.dpi
+  );
+
+  moveDiscs();
+  moveParticles();
+
+  drawDiscs(ctx);
+  drawLines(ctx);
+  drawParticles(ctx);
+
+  ctx.restore();
+
+  animationFrameIdRef.current = requestAnimationFrame(() => {
+    tick();
+  });
+}, [
+  moveDiscs,
+  moveParticles,
+  drawDiscs,
+  drawLines,
+  drawParticles,
+]);
 
   const init = React.useCallback(() => {
     setSize();

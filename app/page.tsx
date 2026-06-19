@@ -42,15 +42,16 @@ export default function Home() {
     router.push(`/workspace?prompt=${encodeURIComponent(prompt.trim())}`);
   };
 
-  const handleSuggestion = (suggestion: string) => {
-    setPrompt(suggestion);
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
+  };
+
+  const handleSuggestion = (s: string) => {
+    setPrompt(s);
+    textareaRef.current?.focus();
   };
 
   return (
@@ -75,7 +76,7 @@ export default function Home() {
     top-[58%]
     left-1/2
     -translate-x-1/2
-    -translate-y-1/ 
+    -translate-y-1/2
     h-[650px]
 w-[650px]
 rounded-full
@@ -156,6 +157,170 @@ blur-[120px]
           ))}
         </div>
       </div>
+      <p className="mt-10 text-xs text-white/20">
+        No credit card required. 10 free generatins on sign up
+      </p>
+      </section>
+      <section className="px-4 py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="rounded-lg bg-[#1a1a1a] shadow-2xl 
+          overflow-hidden border border-white/5 ">
+            <div className="bg-[#2a2a2a] px-4 py-3 flex 
+            items-center gap-3 border-b border-white/5">
+            
+            <div className="flex gap-2">
+              <div className="h-3 w-3 rounded-full
+              bg-red-400"/>
+              <div className="h-3 w-3 rounded-full
+              bg-yellow-400"/>
+              <div className="h-3 w-3 rounded-full
+              bg-green-400"/>
+
+            </div>
+            <div className="flex-1 mx-4">
+              <div className="bg-[#1a1a1a] rounded px-3 py-1.5
+               text-xs text-white/40">
+                app-builder.dev/workspace
+              </div>
+            </div>
+            </div>
+                {/* Browser Contnet*/}
+            <div className="flex h-[600px] bg-[#0f0f0f]">
+
+              
+             {/* Left Panel */}
+<div className="w-[28%] border-r border-white/5 flex flex-col">
+
+  <div className="p-4 text-xs font-semibold text-white/60 border-b border-white/5">
+    Chat
+  </div>
+
+  <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+
+                <div className="flex justify-end">
+                  <div className="max-w-xs bg-blue-600
+                  rounded-lg px-3 py-2">
+
+                    <div className="text-xs text-white">
+                      Build me a task manager app with Kanban board and due date reminders.
+                    </div>
+
+                  </div>
+                </div>
+
+                <div className="flex justify-start">
+                  <div className="max-w-xs bg-[#1a1a1a]
+                  border border-white/10 rounded-lg px-3
+                  py-2">
+                    <div className="text-xs text-white/70">
+  I&apos;ll create a task manager with a
+  Kanban board. Setting up the project...
+</div>
+                  </div>
+                </div>
+
+                <div className="flex justify-start">
+                  <div className="max-w-xs bg-[#1a1a1a]
+                  border border-white/10 rounded-lg px-3
+                  py-2">
+                    <div className="text-xs text-white/70">
+                    Installing dependencies and generating 
+                    components. This will be ready in a moment.
+                    </div>
+
+                  </div>
+                </div>
+
+                <div className="border-t border-white/5 p-3">
+                <input 
+               type ="text"
+               placeholder="Type your message..."
+                disabled
+                className="w-full bg-[#1a1a1a] border
+                border-white/10 rounded px-3 py-2 text-xs
+                text-white/50 placeholder:text-white/20"/>
+                </div>
+                </div>
+
+</div> {/* Left Panel End */}
+
+{/* Right Panel */}
+<div className="w-[72%] flex flex-col">
+                {/*Tabs*/}
+                <div className="border-b border-white/5 flex
+                px-4 pt-3">
+                  
+                  <div className="text-xs font-semibold
+                  text-white/60 pb-3 border-b-2 border-blue-500
+                  text-white">
+                    Preview
+                  </div>
+                  <div className="ml-4 text-xs font-semibold
+                  text-white/40 pb-3">
+                    Code
+                  </div>
+                  </div>
+
+                <div className="flex-1 overflow-hidden p-6">
+                    
+
+                      <div className="grid grid-cols-3 gap-8 max-w-5xl">
+                        <div className="flex-1 bg-[#1a1a1a]
+                        rounded-lg border border-white/10 p-4 min-h-[320px]
+                        ">
+                          <div className="text-xs font-semibold
+                          text-white/70 mb-3">
+                            Todo
+                          </div>
+                          <div className="space-y-3">
+  <div className="rounded-lg bg-[#252525] p-3 text-sm text-white/80">
+    Design Dashboard UI
+  </div>
+
+  <div className="rounded-lg bg-[#252525] p-3 text-sm text-white/80">
+    Implement Authentication
+  </div>
+  <div className="rounded-xl bg-[#232323] border border-white/5 p-4 text-sm text-white/90">
+  Create API Routes
+</div>
+</div>
+                        </div>
+
+                        <div className="flex-1 bg-[#1a1a1a]
+                        rounded-lg border border-white/10 p-4 min-h-[320px]
+                        ">
+                          <div className="text-xs font-semibold
+                         text-white/70 mb-3">
+                              In Progress
+                         </div>
+<div className="space-y-3">
+  <div className="rounded-lg bg-[#252525] p-3 text-sm text-white/80">
+    Build Kanban Drag & Drop
+  </div>
+</div>
+                 </div>
+                         
+        <div className="flex-1 bg-[#1a1a1a] rounded-lg border border-white/10 p-4 min-h-[320px]">
+                               <div className="text-xs font-semibold text-white/70 mb-3">
+    Done
+  </div>
+
+  <div className="space-y-3">
+  <div className="rounded-lg bg-[#252525] p-3 text-sm text-white/80">
+    Setup Next.js Project
+  </div>
+</div>
+</div>
+                                  </div>
+                    </div>
+                  </div>
+                  </div>
+                </div>
+              </div>
+
+          
+       
+
       </section>
     </main>
   );
