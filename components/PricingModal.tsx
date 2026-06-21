@@ -7,7 +7,7 @@ interface PrincipalModalProps {
     children: React.ReactNode;
     reason?: "credits" | "Upgrade";
 }
-const PrincipalModal = ({ children, reason = "upgrade" }: PrincipalModalProps) => {
+const PrincipalModal = ({ children, reason = "Upgrade" }: PrincipalModalProps) => {
     const title = 
     reason === "credits" ? "You're out of credits" : "Upgrade your plan"
     const description =

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { PricingTable, SignInButton, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { FEATURES, PLACEHOLDERS, STEPS, SUGGESTIONS } from "@/lib/data";
+import { FEATURES, PLACEHOLDERS, STEPS , SUGGESTIONS} from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ChevronRight } from "lucide-react";
 
@@ -54,6 +54,7 @@ export default function Home() {
     textareaRef.current?.focus();
   };
 
+ 
   return (
     <main className="min-h-screen bg-black selection:bg-white/20">
       <section className="relative h-screen flex flex-col items-center overflow-hidden px-4 pb-24 pt-40 text-center">
@@ -156,6 +157,7 @@ blur-[120px]
             </button>
           ))}
         </div>
+        
       </div>
       <p className="mt-10 text-xs text-white/20">
         No credit card required. 10 free generatins on sign up
