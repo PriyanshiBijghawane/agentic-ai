@@ -57,7 +57,7 @@ export default function Home() {
  
   return (
     <main className="min-h-screen bg-black selection:bg-white/20">
-      <section className="relative h-screen flex flex-col items-center overflow-hidden px-4 pb-24 pt-40 text-center">
+      <section className="relative min-h-screen flex flex-col items-center px-4 pb-24 pt-40 text-center">
        <HoleBackground 
       strokeColor="rgba(255, 255, 255,0.02)"
         className="absolute inset-0 h-full w-full"
