@@ -4,6 +4,7 @@ import { FileData, Message, StatusStep } from '@/types/workspace';
 import React, { useCallback, useState } from 'react'
 import { CodePanel } from './CodePanel';
 import ChatPanel from './ChatPanel';
+import { MIN_CREDITS_TO_GENERATE } from '@/lib/constants';
 
 interface WorkspaceClientProps {
   initialPrompt: string | null;
@@ -30,7 +31,10 @@ const WorkspaceClient = ({
     setFileData(patches);
   }, []);
   const handleGenerate = useCallback(
-    async (prompt: string, imageUrl?: string) => {},
+    async (prompt: string, imageUrl?: string) => {
+      if (isgenerating) return;
+      if (credits < MIN_CREDITS_TO_GENERATE) return;
+    },
      [credits, isGenerating, userId],
 );
   return (
