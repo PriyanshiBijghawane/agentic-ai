@@ -47,6 +47,7 @@ const WorkspaceClient = ({
       onGenerate={handleGenerate}
       userId={userId}
       workspaceId={workspaceId}
+      appTitle={'Test Title'}
       />
     <CodePanel
         fileData={fileData}
