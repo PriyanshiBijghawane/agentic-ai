@@ -124,7 +124,7 @@ export async function POST(request: NextRequest){
   
     
     const user = await db.user.findUnique({
-        where: { id: userId, clerkId },
+        where: { clerkId },
         select: { id: true, credits:true },
     });
 
@@ -172,10 +172,12 @@ export async function POST(request: NextRequest){
                                 if (label) {
                                     enqueue(sseEvent("status", { message: label }));
                                     lastEmitTime = now;
-                                } else {
+                                } 
+                            }
+                            }
+                            else {
                                     accumulated += part.text;
                                 }
-                            }
                         }
                     }
                 }
