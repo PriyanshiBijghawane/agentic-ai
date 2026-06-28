@@ -15,7 +15,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY});
 function buildContents(messages: Message[], fileData: FileData | null) {
     const trimmed = trimHistory(messages);
 
-    return trimmmed.map((msg, idx) => {
+    return trimmed.map((msg, idx) => {
         const role = msg.role === "assistant"? "model" : "user";
 
         if(msg.role === "user"){
@@ -65,7 +65,9 @@ RULES:
 7. Do not include react, react-dom, or tailwindcss in "dependencies" — they are always available.
 8. When modifying existing code, include ALL files (both changed and unchanged) in "files".
 9. Keep code clean, readable, and production-quality.
-10. If the user attaches an image, use it as a design reference and match the layout/style as closely as possible.`;
+10. If the user attaches an image, use it as a design reference and match the layout/style as closely as possible.`
+
+;
 
 function extractThoughtLabel(text: string): string | null {
     const boldMatch = text.match(/\*\*([^*]{4,60})\*\*/);
@@ -143,23 +145,25 @@ export async function POST(request: NextRequest){
 
             try {
                 const contents = buildContents(messages, fileData);
-
+                 console.log("STEP 1 - Calling Gemini");
                 const geminiStream = await ai.models.generateContentStream({
-                      model: "gemini-3.5-flash",
+                      model: "gemini-2.5-flash",
                       contents,
                       config: {
                         systemInstruction: SYSTEM_PROMPT,
                         temperature: 0.7,
                         responseMimeType: "application/json",
                         thinkingConfig: {
-                            includeThoughts: true,
+                            includeThoughts: false,
                         },
                       },
                 });
+                console.log("STEP 2 - Gemini Connected");
                 let accumulated = "";
                 let lastEmitTime = 0;
 
                 for await (const chunk of geminiStream) {
+                    console.log("STEP 3 - Chunk received");
                     const parts = chunk.candidates?.[0]?.content?.parts ?? [];
 
                     for (const part of parts) {
@@ -170,7 +174,11 @@ export async function POST(request: NextRequest){
                             if(now - lastEmitTime > 600){
                                 const label = extractThoughtLabel(part.text);
                                 if (label) {
-                                    enqueue(sseEvent("status", { message: label }));
+                                    enqueue(
+                                        sseEvent("status", { 
+                                            message: label,
+                                         })
+                                        );
                                     lastEmitTime = now;
                                 } 
                             }
@@ -180,32 +188,55 @@ export async function POST(request: NextRequest){
                                 }
                         }
                     }
-                }
+                
+let parsed: {
+  assistantMessage: string;
+  title?: string;
+  files: Record<string, { code: string }>;
+  dependencies: Record<string, string>;
+};
 
-                let parsed: {
-                    assistantMessage: string;
-                    title?: string;
-                    files: Record<string, { code: string}>;
-                    dependencies: Record<string, string>;
-                };
+try {
+  console.log("========== RAW GEMINI ==========");
+  console.log(accumulated);
 
-                try{
-                    parsed = JSON.parse(accumulated);
-                } catch (error){
-                   enqueue(
-                    sseEvent("error", {
-                        message: "AI returned invalid JSON. Please try again.",
-                    }),
-                   );
-                   controller.close();
-                   return;
-                }
+  // Remove markdown fences if Gemini returns them
+  let cleaned = accumulated
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
 
+  // Extract only the JSON object
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+
+  if (start === -1 || end === -1) {
+    throw new Error("No JSON object found.");
+  }
+
+  cleaned = cleaned.substring(start, end + 1);
+
+  parsed = JSON.parse(cleaned);
+
+  console.log("STEP 4 - Parsed JSON");
+} catch (err) {
+  console.error("JSON PARSE FAILED");
+  console.error(accumulated);
+
+  enqueue(
+    sseEvent("error", {
+      message: "Gemini returned invalid JSON.",
+    }),
+  );
+
+  controller.close();
+  return;
+}
                 const {
                     assistantMessage,
                     title: aiTitle,
                     files,
-                    dependencies,
+                    dependencies = {},
                 } = parsed;
 
                 if(!files || typeof files !== "object") {
@@ -227,7 +258,7 @@ export async function POST(request: NextRequest){
                     title: aiTitle,
                 };
 
-
+console.log("Generated FileData:", newFileData);
                 enqueue(sseEvent("status", { message: "Saving..."}));
 
                 const lastUserMsg = messages[messages.length-1];
@@ -236,47 +267,58 @@ export async function POST(request: NextRequest){
                     { role: "assistant", content: assistantMessage },
                 ];
 
-                const [workspace] = await db.$transaction([
-                    workspaceId
-                    ? db.workSpace.update({
-                        where: { id: workspaceId, userId },
+                const workspace = await db.$transaction(async(tx)=>{
+                      console.log("STEP 5 - Saving Workspace");
+                    const ws = workspaceId
+                    ?await tx.workSpace.update({
+                        where: { id: workspaceId, userId: user.id, },
                         data: {
                             messages: updatedMessages as never,
-                            fileData: newfileData as never,
+                            fileData: newFileData as never,
                         },
                     })
-                    : db.workSpace.create({
+                    :await tx.workSpace.create({
                         data: {
-                            userId,
+                            userId: user.id,
                             title: aiTitle ?? lastUserMsg.content.slice(0, 80),
                             messages: updatedMessages as never,
                             fileData: newFileData as never,
 
                         },
-                    }),
+                    })
 
-                    db.user.update({
-                        where: { id: userId },
-                        data: { credits: { decrement: CREDIT_COST_PER_GENERATION } },
-                    }),
-                ]);
+                   await tx.user.update({
+                        where: { id: user.id, },
+                        data: { credits: { decrement: CREDIT_COST_PER_GENERATION,
+
+                         },
+                     },
+                    });
+                    return ws;
+             },{timeout:200000},
+             );
 
                 const updatedUser = await db.user.findUnique({
-                    where: {id: userId },
+                    where: {id: user.id },
                     select: { credits: true },
                 });
                  
-
+console.log("Sending SSE:", {
+  workspaceId: workspace.id,
+  assistantMessage,
+  fileData: newFileData,
+});
                 enqueue(
                     sseEvent("done", {
                         workspaceId: workspace.id,
                         assistantMessage,
                         fileData: newFileData,
-                        creditRemaining:
+                        creditsRemaining:
                         updatedUser?.credits ?? user.credits - CREDIT_COST_PER_GENERATION,
 
                     }),
                 );
+                console.log("STEP 6 - Sending to Frontend");
             } catch (err) {
                 console.error("[gen-ai-code] stream error:", err);
                 enqueue(

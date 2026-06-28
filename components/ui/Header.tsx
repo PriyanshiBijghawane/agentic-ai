@@ -22,7 +22,7 @@ const Header = async() => {
   <header className="w-full fixed top-0 left-0 z-50 h-16 border-b border-white/6 bg-white/7 backdrop-blur-md">
     <nav className="mx-auto flex h-full max-w-7xl items-center justify-between px-4
     sm:px-6">
-        <Link href={'/'}>
+        <Link href={"/projects"}>
           <Image 
             src={"/logo.png"} 
             alt="Vidhyora Logo"

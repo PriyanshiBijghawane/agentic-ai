@@ -7,8 +7,7 @@ import PrincipalModal from './PricingModal';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { ArrowUp, Check, Loader2, Paperclip } from 'lucide-react';
-import { Button } from '@base-ui/react';
-
+import { Button } from "@/components/ui/button";
 
 interface ChatPanelProps {
     messages: Message[];
@@ -75,6 +74,7 @@ useEffect(() => {
 }, [messages, isGenerating, isImproving]);
 
      const handleSubmit = async () => {
+         console.log("Submit clicked");
         const trimmed = input.trim();
         if (!trimmed || isGenerating || isImproving || noCredits) return;
         setInput("");
@@ -110,7 +110,7 @@ useEffect(() => {
          ref={scrollRef}
          className="flex-1 overflow-y-auto px-3 py-4 [&::-webkit-scrollbar]:hidden"
          >
-            {msgs.length === 0 && !isGenerating && (
+            {messages.length === 0 && !isGenerating && (
                 <div className="flex h-full items-center justify-center">
                     <p className="text-center text-xs text-white/20">
                       Describe what you want to bulid...
@@ -118,7 +118,7 @@ useEffect(() => {
                     </div>
             )}
             <div className="space-y-4">
-                {msgs.map((msg, i) => (
+                {messages.map((msg, i) => (
                     <div key={i}>
                         {msg.role === "user" ? (
                             <div className="flex items-start justify-end gap-2">

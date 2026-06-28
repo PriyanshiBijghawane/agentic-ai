@@ -1,9 +1,14 @@
 "use client";
 
 import { FileData, StatusStep } from "@/types/workspace";
-import { useEffect, useState, useRef } from "react";
-import { SandpackProvider, SandpackLayout, SandpackCodeEditor,
-    SandpackPreview, SandpackFileExplorer, useSandpack,
+import { useState, useEffect, useRef } from "react";
+import {
+  SandpackProvider,
+  SandpackLayout,
+  SandpackCodeEditor,
+  SandpackPreview,
+  SandpackFileExplorer,
+  useSandpack,
 } from "@codesandbox/sandpack-react";
 import { dracula } from "@codesandbox/sandpack-themes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -75,23 +80,26 @@ function SandpackInner({
   activeTab: ActiveTab;
   setActiveTab: (t: ActiveTab) => void;
 }) {
-    const { sandpack } = useSandpack();
-    const prevFilesRef=useRef<Record<string,{code: string}>>({});
-    useEffect(()=>{
-        if(!fileData?.files) return;
-        const prev = prevFilesRef.current;
+    
+const { sandpack } = useSandpack();
 
-        for (const [path, { code }] of Object.entries(fileData.files)){
-            if (prev[path]?.code !== code) {
-                sandpack.updateFile(path, code);
-            }
-        }
-        prevFilesRef.current = fileData.files;
-    }, [fileData?.files]);
+const prevFilesRef = useRef<Record<string, { code: string }>>({});
+
+useEffect(() => {
+  if (!fileData?.files) return;
+
+  for (const [path, { code }] of Object.entries(fileData.files)) {
+    if (prevFilesRef.current[path]?.code !== code) {
+      sandpack.updateFile(path, code);
+    }
+  }
+
+  prevFilesRef.current = fileData.files;
+}, [fileData?.files, sandpack]);
     return(
         <Tabs value={activeTab} 
         onValueChange={(v) => setActiveTab(v as ActiveTab)}
-        className="flex h-full flex-col gap-0">
+       className="flex h-full min-h-0 flex-1 flex-col gap-0">
 
             <div className="flex items-center justify-between border-b border-white/6 px-2">
             
@@ -108,50 +116,65 @@ function SandpackInner({
             </TabsList>
             </div>
 
-            <div className="relative flex-1 overflow-hidden h-full">
-                <SandpackLayout
-                     style={{
-                     height: "100%",
-                     border: "none",
-                     borderRadius: 0,
-                     background: "transparent",
-                     }}
-                   >
-                  <TabsContent
-                    value="preview"
-                    keepMounted
-                    className="mt-0 h-full w-full data-[state=inactive]:hidden"
-                   >
-                    <SandpackPreview
-                    style={{ height: "100%"}}
-                    showOpenInCodeSandbox={false}
-                    />
-                    </TabsContent>
-                   <TabsContent
-  value="code"
-  keepMounted
-  className="mt-0 flex h-full w-full data-[state=inactive]:hidden"
->
-                       <SandpackFileExplorer
-                       style={{
-                        height: "100%",
-                        width: "150px",
-                        borderRight: "0.5px solid rgba(255,255,255,0.08)",
-                       }}
-                       />
-                       <SandpackCodeEditor
-                       style={{ height: "100%", flex:1 }}
-                       showTabs
-                       showLineNumbers
-                       showInlineErrors
-                       closableTabs
-                       readOnly
-                       />
-                       </TabsContent>
-                </SandpackLayout>
-            </div>
            
-         </Tabs>
+<div className="relative flex flex-1 h-full w-full overflow-hidden">
+
+  <TabsContent
+    value="preview"
+    keepMounted
+    className="mt-0 flex flex-1 h-full w-full overflow-hidden data-[state=inactive]:hidden"
+  >
+    <SandpackPreview
+  style={{
+    flex: 1,
+    width: "100vh",
+    height: "100vh",
+    
+  }}
+/>
+
+    
+  </TabsContent>
+
+  <TabsContent
+    value="code"
+    keepMounted
+    className="mt-0 h-full w-full flex-1 overflow-hidden data-[state=inactive]:hidden"
+  >
+    <SandpackLayout
+  style={{
+    display: "flex",
+    flex: 1,
+    height: "100%",
+    width: "100%",
+    border: "none",
+    borderRadius: 0,
+  }}
+>
+      <SandpackFileExplorer
+        style={{
+          width: "180px",
+          borderRight: "0.5px solid rgba(255,255,255,0.08)",
+        }}
+      />
+
+      <SandpackCodeEditor
+        style={{
+          flex: 1,
+          height: "100%",
+        }}
+        showTabs
+        showLineNumbers
+        showInlineErrors
+        closableTabs
+        readOnly
+      />
+    </SandpackLayout>
+  </TabsContent>
+
+</div>
+</Tabs>                       
+
     );
 }
 
@@ -162,35 +185,44 @@ statusLog,
 onFilePatch: onFilePatch,
 }:CodePanelProps) {
     const[activeTab, setActiveTab] = useState<ActiveTab>("code");
-
+    console.log("CodePanel fileData:", fileData);
     const files = fileData?.files ?? PLACEHOLDER_FILES;
-    console.log("FILES LOADED INTO SANDPACK:", files);
+    console.log("========== FILES ==========");
+console.log(Object.keys(files));
+console.log(files);
+console.log("===========================");
     const dependencies = {
         ...BASE_DEPENDENCIES,
         ...(fileData?.dependencies ?? {}),
     };
+const filePathKey = Object.keys(files).sort().join("|");
+return (
+    <div className="flex flex-1 h-screen flex-col overflow-hidden">
+      <SandpackProvider
+        key={filePathKey}
+        template="react"
+        theme={dracula}
+        files={files}
+        customSetup={{ dependencies }}
+        options={{
+          externalResources: ["https://cdn.tailwindcss.com"],
+          recompileMode: "delayed",
+          recompileDelay: 500,
+        }}
+      >
+        <SandpackInner
+          fileData={fileData}
+          isGenerating={isGenerating}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      </SandpackProvider>
+    </div>
+  );
+  }
 
-    const filePathKey = Object.keys(files).sort().join("|");
-    return (
-    <div className="h-full">
-            <SandpackProvider key={filePathKey}
-            template="react"
-            theme={dracula}
-            files={files}
-            customSetup={{ dependencies }}
-            options={{ 
-                externalResources: ["https://cdn.tailwindcss.com"],
-                recompileMode: "delayed",
-                recompileDelay: 500,
-            }}
-            >
-                <SandpackInner
-                fileData={fileData}
-                isGenerating={isGenerating}
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                />
-            </SandpackProvider>
-        </div>
-    );
-}
+   
+
+
+
+            

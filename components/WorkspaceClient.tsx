@@ -46,7 +46,9 @@ const WorkspaceClient = ({
    userId, 
    userPlan,
 }: WorkspaceClientProps) => {
-  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(
+    workspace?.id ?? null
+  );
   
   const[messages, setMessages] = useState<Message[]>(
     parseMessages(workspace?.messages),
@@ -96,6 +98,7 @@ useEffect(() => {
   };
   const handleGenerate = useCallback(
     async (prompt: string, imageUrl?: string) => {
+       console.log("handleGenerate called");
       if (isGenerating) return;
       if (credits < MIN_CREDITS_TO_GENERATE) return;
 
@@ -107,13 +110,22 @@ useEffect(() => {
         
         const currentMessages = messageRef.current;
         const currentWorkspaceId = workspaceIdRef.current;
+          
+         console.log({
+      workspaceId: currentWorkspaceId,
+      userId,
+      messages: [...currentMessages, userMessage],
+      fileData: fileDataRef.current,
+    });
 
         setMessages((prev) => [...prev, userMessage]);
         setIsGenerating(true);
         setStatusLog([{ label: "Thinking...", status: "running" }]);
 
         try {
+          console.log("Sending request to /api/gen-ai-code");
           const res = await fetch("/api/gen-ai-code", {
+            
                method: "POST",
                headers: { "Content-Type": "application/json"},
                body: JSON.stringify({
@@ -159,12 +171,15 @@ useEffect(() => {
                 } else if (event.type === "done") {
                   completeSteps();
                   setWorkspaceId(event.workspaceId);
+                  console.log("NEW FILEDATA:", event.fileData);
                   setFileData(event.fileData);
+                  console.log("Workspace received fileData:", event.fileData);
                   setCredits(event.creditsRemaining);
                   setMessages((prev) => [
                     ...prev,
                     { role: "assistant", content: event.assistantMessage } as unknown as Message,
-                  ]);
+                  ]);setIsGenerating(false);
+
                   window.history.replaceState(
                     null,
                     "",
@@ -177,6 +192,7 @@ useEffect(() => {
             }
           }
         } catch (err) {
+          setIsGenerating(false);
           toast.error(
             err instanceof Error ? err.message : "Something went wrong.",
           );
@@ -186,8 +202,8 @@ useEffect(() => {
      [credits, isGenerating, userId],
 );
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden
-    bg-[#0a0a0a]">
+    <div className="flex h-screen overflow-hidden bg-[#0a0a0a]">
+
       
           <ChatPanel
       messages={messages}

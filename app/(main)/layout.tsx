@@ -1,10 +1,13 @@
 const layout = ({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) => {
-    return <div className="mt-16">{children}</div>;
+  return (
+    <div className="mt-16 h-[calc(100vh-4rem)] overflow-hidden">
+      {children}
+    </div>
+  );
 };
-
 
 export default layout;
