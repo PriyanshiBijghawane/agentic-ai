@@ -6,7 +6,7 @@ import { BlueTitle } from './reusable';
 import PrincipalModal from './PricingModal';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { ArrowUp, Check, Loader2, Paperclip } from 'lucide-react';
+import { ArrowUp, Check, Loader2, Paperclip, Square } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 interface ChatPanelProps {
@@ -19,6 +19,7 @@ interface ChatPanelProps {
     onGenerate: (prompt: string, imageUrl?: string) => Promise<void>;
     userId: string;
     workspaceId: string| null;
+    onStop: () => void,
     appTitle: string | null;
 }
 const ChatPanel = ({
@@ -31,6 +32,7 @@ const ChatPanel = ({
     onGenerate,
     userId,
     workspaceId,
+    onStop,
     appTitle,
 }: ChatPanelProps) => {
    const scrollRef = useRef<HTMLDivElement>(null);
@@ -193,7 +195,7 @@ useEffect(() => {
          <div className="border-t border-white/6 p-3">
          <div
          className={cn(
-            "rounded-xl border bg-white/4 transition-colors",
+            "relative min-h-[110px] rounded-xl border bg-white/4 transition-colors",
             isGenerating || isImproving || noCredits
             ? "border-white/4 opacity-60"
             : "border-white/8 hover:border-white/12"
@@ -215,7 +217,7 @@ useEffect(() => {
                 : "Ask AI to modify..."
             }
             rows={1}
-            className="w-full resize-none bg-transparent px-3.5 pb-2 pt-3 text-[13px] text-white/80
+            className="w-full min-h-[80px] resize-none bg-transparent px-3.5 pb-12 pr-14 text-[13px] text-white/80
             placeholder:text-white/20 focus:outline-none"
             style={{maxHeight: 160}}
             />
@@ -228,6 +230,14 @@ useEffect(() => {
                     <Paperclip className="h-3.5 w-3.5" />
                 </Button>
 
+               { isGenerating || isImproving  ? (
+                <Button
+                size="icon"
+                onClick={onStop}
+                className="h-7 w-7 rounded-lg bg-white/10 text-white/60 hover:bg-white/20 hover:text-white active:scale-95 transition-all">           
+                     <Square className="h-3 w-3 fill-current" />
+                </Button>
+               ) : (
                 <Button
                 size="icon"
                 onClick={handleSubmit}
@@ -243,13 +253,15 @@ useEffect(() => {
                     <Loader2 className="h-4 w-4 animate-spin"/>
                 ) :(
                     <ArrowUp className="h-4 w-4"/>
-                )
-            }
+                )}
              </Button>
+             )}
             </div>
          </div>
          <p className="mt-1.5 text-center text-[10px] text-white/15">
-  Press Enter to send • Shift + Enter for new line
+         {isGenerating || isImproving
+         ? "Click to stop generation"
+  : "Press Enter to send • Shift + Enter for new line"}
 </p>
          </div>
         </div>

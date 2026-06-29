@@ -197,7 +197,7 @@ console.log("===========================");
     };
 const filePathKey = Object.keys(files).sort().join("|");
 return (
-    <div className="flex flex-1 h-screen flex-col overflow-hidden">
+    <div className="flex flex-1 min-h- flex-col overflow-hidden">
       <SandpackProvider
         key={filePathKey}
         template="react"

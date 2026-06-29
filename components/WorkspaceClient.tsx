@@ -76,6 +76,9 @@ useEffect(() => {
   workspaceIdRef.current= workspaceId;
 }, [workspaceId]);
 
+const generateAbortRef = useRef<AbortController | null>(null);
+const improveAbortRef = useRef<AbortController | null>(null);
+
   const handleFilePatch = useCallback((patches: FileData) => {
     setFileData(patches);
   }, []);
@@ -122,12 +125,15 @@ useEffect(() => {
         setIsGenerating(true);
         setStatusLog([{ label: "Thinking...", status: "running" }]);
 
+        const abortController = new AbortController();
+        generateAbortRef.current = abortController;
         try {
           console.log("Sending request to /api/gen-ai-code");
           const res = await fetch("/api/gen-ai-code", {
             
                method: "POST",
                headers: { "Content-Type": "application/json"},
+               signal: abortController.signal,
                body: JSON.stringify({
                 workspaceId: currentWorkspaceId,
                 userId,
@@ -192,15 +198,28 @@ useEffect(() => {
             }
           }
         } catch (err) {
-          setIsGenerating(false);
+          if (err instanceof Error && err.name === "AbortError") {
+      setMessages((prev) => prev.slice(0,-1));
+      return;
+          }
+          
           toast.error(
             err instanceof Error ? err.message : "Something went wrong.",
           );
           setMessages((prev) => prev.slice(0, -1));
+        } finally {
+          generateAbortRef.current = null;
+          setIsGenerating(false);
+          setStatusLog([]);
         }
     },
      [credits, isGenerating, userId],
 );
+
+const handleStop = useCallback(() => {
+generateAbortRef.current?.abort();
+improveAbortRef.current?.abort();
+}, []);
   return (
     <div className="flex h-screen overflow-hidden bg-[#0a0a0a]">
 
@@ -212,6 +231,7 @@ useEffect(() => {
       statusLog={statusLog}
       credits={credits}
       initialPrompt={initialPrompt}
+      onStop={handleStop}
       onGenerate={handleGenerate}
       userId={userId}
       workspaceId={workspaceId}
