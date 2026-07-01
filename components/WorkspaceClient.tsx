@@ -221,7 +221,7 @@ generateAbortRef.current?.abort();
 improveAbortRef.current?.abort();
 }, []);
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0a0a0a]">
+    <div className="flex h-screen overflow-visible bg-[#0a0a0a]">
 
       
           <ChatPanel
